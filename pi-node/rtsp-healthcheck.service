@@ -1,0 +1,9 @@
+[Unit]
+Description=RTSP Health Check
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/home/pi/pi-node/healthcheck.env
+ExecStart=/home/pi/pi-node/rtsp-healthcheck.sh --url ${RTSP_URL} --timeout 5 --restart-service stream.service --restart-cooldown 60

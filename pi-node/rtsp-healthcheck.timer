@@ -1,0 +1,10 @@
+[Unit]
+Description=RTSP Health Check Timer
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+Unit=rtsp-healthcheck.service
+
+[Install]
+WantedBy=timers.target

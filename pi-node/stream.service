@@ -1,0 +1,19 @@
+[Unit]
+Description=Pi RTSP Stream (libcamera-vid + GStreamer)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/pi-node
+ExecStart=/home/pi/pi-node/stream.sh
+Restart=always
+RestartSec=2
+Environment=CAM_ID=cam01
+Environment=DEST_IP=mac.local
+Environment=DEST_PORT=8554
+
+[Install]
+WantedBy=multi-user.target
