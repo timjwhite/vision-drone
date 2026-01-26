@@ -18,6 +18,11 @@ class TrackData:
 
 class VisionEngine:
     def __init__(self, config: dict):
+        self.detector = config.get("detector", "motion")
+        self.model_name = config.get("model", "yolov8n.pt")
+        self.conf = float(config.get("conf", 0.4))
+        self.iou = float(config.get("iou", 0.5))
+
         self.detection_interval_s = float(config.get("detection_interval_s", 0.2))
         self.min_area = int(config.get("min_area", 800))
         self.distance_threshold = float(config.get("distance_threshold", 60.0))
@@ -29,6 +34,17 @@ class VisionEngine:
         self._last_detection_time: Dict[str, float] = {}
         self._trackers: Dict[str, Dict[int, TrackData]] = {}
         self._bg_subs: Dict[str, cv2.BackgroundSubtractor] = {}
+        self._last_boxes: Dict[str, List[Tuple[int, int, int, int]]] = {}
+        self._yolo = None
+
+        if self.detector == "yolo":
+            try:
+                from ultralytics import YOLO
+
+                self._yolo = YOLO(self.model_name)
+            except Exception as exc:
+                print(f"vision: failed to load YOLO ({exc}); falling back to motion detector")
+                self.detector = "motion"
 
     def process(self, frames: Dict[str, dict]) -> Dict[str, List[PersonState]]:
         results: Dict[str, List[PersonState]] = {}
@@ -45,7 +61,10 @@ class VisionEngine:
 
             detections: List[Tuple[float, float]] = []
             if (ts - last_det) >= self.detection_interval_s:
-                detections = self._detect_motion(frame, bg)
+                if self.detector == "yolo" and self._yolo is not None:
+                    detections = self._detect_people_yolo(stream_id, frame)
+                else:
+                    detections = self._detect_motion(stream_id, frame, bg)
                 self._last_detection_time[stream_id] = ts
 
             self._update_tracks(tracks, detections, ts)
@@ -53,13 +72,17 @@ class VisionEngine:
 
         return results
 
-    def _detect_motion(self, frame, bg) -> List[Tuple[float, float]]:
+    def get_last_boxes(self, stream_id: str) -> List[Tuple[int, int, int, int]]:
+        return self._last_boxes.get(stream_id, [])
+
+    def _detect_motion(self, stream_id: str, frame, bg) -> List[Tuple[float, float]]:
         fg = bg.apply(frame)
         fg = cv2.medianBlur(fg, 5)
         _, th = cv2.threshold(fg, 200, 255, cv2.THRESH_BINARY)
         th = cv2.dilate(th, None, iterations=2)
         contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         points: List[Tuple[float, float]] = []
+        boxes: List[Tuple[int, int, int, int]] = []
         for c in contours:
             area = cv2.contourArea(c)
             if area < self.min_area:
@@ -68,6 +91,35 @@ class VisionEngine:
             cx = x + w / 2.0
             cy = y + h / 2.0
             points.append((cx, cy))
+            boxes.append((x, y, w, h))
+        self._last_boxes[stream_id] = boxes
+        return points
+
+    def _detect_people_yolo(self, stream_id: str, frame) -> List[Tuple[float, float]]:
+        boxes: List[Tuple[int, int, int, int]] = []
+        points: List[Tuple[float, float]] = []
+
+        results = self._yolo(frame, conf=self.conf, iou=self.iou, verbose=False)
+        if not results:
+            self._last_boxes[stream_id] = []
+            return []
+
+        res = results[0]
+        for box in res.boxes:
+            cls = int(box.cls.item())
+            if cls != 0:
+                continue
+            x1, y1, x2, y2 = box.xyxy[0].tolist()
+            x = int(max(0, x1))
+            y = int(max(0, y1))
+            w = int(max(0, x2 - x1))
+            h = int(max(0, y2 - y1))
+            boxes.append((x, y, w, h))
+            cx = x + w / 2.0
+            cy = y + h / 2.0
+            points.append((cx, cy))
+
+        self._last_boxes[stream_id] = boxes
         return points
 
     def _update_tracks(self, tracks: Dict[int, TrackData], detections: List[Tuple[float, float]], ts: float) -> None:

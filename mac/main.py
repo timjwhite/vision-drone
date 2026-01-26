@@ -130,21 +130,37 @@ def run_vision_test(config: IngestConfig) -> None:
                 counts = {sid: len(people) for sid, people in results.items()}
                 print(f"vision: {counts}")
                 last_print = now
+            for stream_id, payload in frames.items():
+                frame = payload.get("frame")
+                if frame is None:
+                    continue
+                boxes = vision_engine.get_last_boxes(stream_id)
+                for (x, y, w, h) in boxes:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.imshow(f"vision-{stream_id}", frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
             time.sleep(config.tick_interval)
     except KeyboardInterrupt:
         pass
     finally:
         camera_manager.stop()
+        cv2.destroyAllWindows()
 
 
-def run_vision_file_test(config: IngestConfig, path: str) -> None:
+def run_vision_file_test(config: IngestConfig, path: str, with_midi: bool = False) -> None:
     cap = cv2.VideoCapture(path)
     if not cap.isOpened():
         raise RuntimeError(f"Failed to open video file: {path}")
 
     vision_engine = VisionEngine(config.vision or {})
+    fusion_engine = FeatureFusion(config.fusion or {})
+    music_engine = MusicEngine(config.music or {})
+    midi_out = MidiOutput(config.midi or {}) if with_midi else None
     last_print = 0.0
     try:
+        if midi_out:
+            midi_out.open()
         while True:
             ok, frame = cap.read()
             if not ok:
@@ -152,16 +168,29 @@ def run_vision_file_test(config: IngestConfig, path: str) -> None:
                 continue
             payload = {"frame": frame, "timestamp": time.time(), "connected": True}
             results = vision_engine.process({"file": payload})
+            if midi_out:
+                features = fusion_engine.update(results)
+                events = music_engine.generate(features)
+                midi_out.send(events)
             now = time.time()
             if now - last_print >= 1.0:
                 count = len(results.get("file", []))
-                print(f"vision-file: {count}")
+                print(f"vision-file: {count} midi={'on' if midi_out else 'off'}")
                 last_print = now
+            boxes = vision_engine.get_last_boxes("file")
+            for (x, y, w, h) in boxes:
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.imshow("vision-file", frame)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
             time.sleep(config.tick_interval)
     except KeyboardInterrupt:
         pass
     finally:
         cap.release()
+        if midi_out:
+            midi_out.close()
+        cv2.destroyAllWindows()
 
 
 def main() -> None:
@@ -172,6 +201,7 @@ def main() -> None:
     parser.add_argument("--vision-test", action="store_true", help="Run vision motion test only")
     parser.add_argument("--vision-file", default="", help="Run vision test on a local video file")
     parser.add_argument("--vision-test-file", action="store_true", help="Run vision test on mac/test.mp4")
+    parser.add_argument("--vision-test-file-midi", action="store_true", help="Run vision test on mac/test.mp4 with MIDI")
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -189,6 +219,9 @@ def main() -> None:
         return
     if args.vision_test_file:
         run_vision_file_test(config, "mac/test.mp4")
+        return
+    if args.vision_test_file_midi:
+        run_vision_file_test(config, "mac/test.mp4", with_midi=True)
         return
 
     run_pipeline(config)

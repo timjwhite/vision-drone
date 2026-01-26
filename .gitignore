@@ -8,3 +8,4 @@ __pycache__/
 .idea/
 .vscode/
 mac/test.mp4
+yolov8n.pt

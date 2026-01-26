@@ -20,6 +20,10 @@ midi:
   port_name: "IAC Driver Bus 1"
 
 vision:
+  detector: yolo
+  model: yolov8n.pt
+  conf: 0.4
+  iou: 0.5
   detection_interval_s: 0.2
   min_area: 800
   distance_threshold: 60.0

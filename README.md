@@ -38,11 +38,22 @@ Requires ingest + GStreamer. It prints a per-stream count of motion tracks:
 python3 mac/main.py --vision-test --config mac/config/ingest.yaml
 ```
 
+### YOLO person detection (recommended)
+The vision module supports YOLO for person detection. The first run will download the model file if needed.
+Set `vision.detector: yolo` and `vision.model: yolov8n.pt` in `mac/config/ingest.yaml`.
+
 ### Vision test on local file
 If you have `mac/test.mp4`, run:
 
 ```bash
 python3 mac/main.py --vision-test-file --config mac/config/ingest.yaml
+```
+
+### Vision test on local file + MIDI
+If you want MIDI output driven by the file:
+
+```bash
+python3 mac/main.py --vision-test-file-midi --config mac/config/ingest.yaml
 ```
 
 ### UDP test harness (send a movie from any machine)
