@@ -5,3 +5,31 @@ cameras:
     protocol: udp
     udp_port: 5001
     reconnect_interval_s: 2.0
+
+music:
+  voice_count: 8
+  scale_notes: [62, 64, 65, 67, 69, 71, 72, 74]
+  min_interval_s: 1.5
+  velocity_min: 20
+  velocity_max: 90
+  cc_movement: 1
+  cc_density: 11
+  cc_phone: 74
+
+midi:
+  port_name: "IAC Driver Bus 1"
+
+vision:
+  detection_interval_s: 0.2
+  min_area: 800
+  distance_threshold: 60.0
+  max_lost_s: 1.5
+  ema_alpha: 0.4
+  stationary_threshold: 5.0
+
+fusion:
+  velocity_slow: 10.0
+  velocity_medium: 30.0
+  velocity_fast: 60.0
+  max_energy: 10.0
+  ema_alpha: 0.3

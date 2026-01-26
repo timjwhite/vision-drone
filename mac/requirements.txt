@@ -1,2 +1,4 @@
 pyyaml==6.0.1
 opencv-python==4.10.0.84
+mido==1.3.2
+python-rtmidi==1.5.8

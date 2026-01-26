@@ -24,6 +24,27 @@ brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plu
 ./scripts/run-mac.sh
 ```
 
+### MIDI test (no vision required)
+Enable the macOS IAC Driver and create a bus named `IAC Driver Bus 1`, then run:
+
+```bash
+python3 mac/main.py --midi-test --config mac/config/ingest.yaml
+```
+
+### Vision test (motion-only)
+Requires ingest + GStreamer. It prints a per-stream count of motion tracks:
+
+```bash
+python3 mac/main.py --vision-test --config mac/config/ingest.yaml
+```
+
+### Vision test on local file
+If you have `mac/test.mp4`, run:
+
+```bash
+python3 mac/main.py --vision-test-file --config mac/config/ingest.yaml
+```
+
 ### UDP test harness (send a movie from any machine)
 From any machine with `ffmpeg`, publish a file:
 
