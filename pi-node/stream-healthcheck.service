@@ -1,0 +1,9 @@
+[Unit]
+Description=Stream Health Check
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/home/pi/pi-node/healthcheck.env
+ExecStart=/home/pi/pi-node/stream-healthcheck.sh ${STREAM_SERVICE}

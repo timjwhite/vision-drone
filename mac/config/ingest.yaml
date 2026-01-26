@@ -2,7 +2,6 @@ tick_interval: 0.1
 
 cameras:
   - id: cam01
-    rtsp_url: rtsp://timwhitcomputer:8554/cam01
-    latency_ms: 200
-    protocol: tcp
+    protocol: udp
+    udp_port: 5001
     reconnect_interval_s: 2.0

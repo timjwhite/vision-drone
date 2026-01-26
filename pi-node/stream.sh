@@ -2,9 +2,8 @@
 set -euo pipefail
 
 CAM_ID="${CAM_ID:-cam01}"
-DEST_IP="${DEST_IP:-mac.local}"
-DEST_PORT="${DEST_PORT:-8554}"
-STREAM_PATH="/${CAM_ID}"
+DEST_IP="${DEST_IP:-ambient-host}"
+DEST_PORT="${DEST_PORT:-5001}"
 
 BITRATE=2000000
 FRAMERATE=15
@@ -23,4 +22,5 @@ exec libcamera-vid \
   -o - | \
   gst-launch-1.0 -v \
     fdsrc ! h264parse config-interval=1 ! \
-    rtspclientsink location=rtsp://${DEST_IP}:${DEST_PORT}${STREAM_PATH}
+    rtph264pay pt=96 config-interval=1 ! \
+    udpsink host=${DEST_IP} port=${DEST_PORT}

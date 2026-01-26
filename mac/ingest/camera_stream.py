@@ -6,8 +6,26 @@ from typing import Optional
 import cv2
 
 
-def build_gstreamer_pipeline(rtsp_url: str, latency_ms: int = 200, protocol: str = "tcp") -> str:
-    protocols = "tcp" if protocol.lower() == "tcp" else "udp"
+def build_gstreamer_pipeline(
+    rtsp_url: Optional[str],
+    latency_ms: int = 200,
+    protocol: str = "udp",
+    udp_port: Optional[int] = None,
+) -> str:
+    protocol = protocol.lower()
+    if protocol == "udp":
+        if udp_port is None:
+            raise ValueError("udp_port is required when protocol=udp")
+        return (
+            "udpsrc port={port} caps=\"application/x-rtp, media=video, "
+            "encoding-name=H264, payload=96, clock-rate=90000\" ! "
+            "rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! "
+            "appsink drop=true max-buffers=1 sync=false"
+        ).format(port=udp_port)
+
+    protocols = "tcp" if protocol == "tcp" else "udp"
+    if not rtsp_url:
+        raise ValueError("rtsp_url is required when protocol=rtsp")
     return (
         f"rtspsrc location={rtsp_url} protocols={protocols} latency={latency_ms} ! "
         "rtph264depay ! h264parse ! avdec_h264 ! videoconvert ! "
@@ -18,9 +36,10 @@ def build_gstreamer_pipeline(rtsp_url: str, latency_ms: int = 200, protocol: str
 @dataclass
 class CameraStream:
     stream_id: str
-    rtsp_url: str
+    rtsp_url: Optional[str] = None
     latency_ms: int = 200
-    protocol: str = "tcp"
+    protocol: str = "udp"
+    udp_port: Optional[int] = None
     reconnect_interval_s: float = 2.0
 
     last_frame: Optional[object] = None
@@ -48,7 +67,12 @@ class CameraStream:
             return self.last_frame, self.last_timestamp, self.connected
 
     def _open_capture(self) -> Optional[cv2.VideoCapture]:
-        pipeline = build_gstreamer_pipeline(self.rtsp_url, self.latency_ms, self.protocol)
+        pipeline = build_gstreamer_pipeline(
+            self.rtsp_url,
+            self.latency_ms,
+            self.protocol,
+            self.udp_port,
+        )
         cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
         if cap is None or not cap.isOpened():
             return None

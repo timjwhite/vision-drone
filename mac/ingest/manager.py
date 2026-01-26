@@ -9,9 +9,10 @@ class CameraManager:
         for cfg in camera_configs:
             stream = CameraStream(
                 stream_id=cfg["id"],
-                rtsp_url=cfg["rtsp_url"],
+                rtsp_url=cfg.get("rtsp_url"),
                 latency_ms=cfg.get("latency_ms", 200),
-                protocol=cfg.get("protocol", "tcp"),
+                protocol=cfg.get("protocol", "udp"),
+                udp_port=cfg.get("udp_port"),
                 reconnect_interval_s=cfg.get("reconnect_interval_s", 2.0),
             )
             self._streams[stream.stream_id] = stream

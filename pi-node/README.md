@@ -7,31 +7,32 @@
 
 Note: Do not use `perl` for any scripts in this project. Use `sed` or other POSIX tools instead.
 
-## Stream command (libcamera-vid → GStreamer → RTSP)
-The stream is produced by `libcamera-vid` and forwarded to RTSP via `gst-launch-1.0`.
+## Stream command (libcamera-vid → GStreamer → UDP)
+The stream is produced by `libcamera-vid` and sent over UDP via `gst-launch-1.0`.
 
 ```bash
 libcamera-vid -t 0 --width 1280 --height 720 --framerate 15 \
   --codec h264 --bitrate 2000000 --inline --keyframe 30 --flush -o - | \
 gst-launch-1.0 -v fdsrc ! h264parse config-interval=1 ! \
-  rtspclientsink location=rtsp://mac.local:8554/cam01
+  rtph264pay pt=96 config-interval=1 ! \
+  udpsink host=mac.local port=5001
 ```
 
 ## Hostname + Stream ID
-Each node must have a unique hostname and RTSP path:
+Each node must have a unique hostname and UDP port:
 
 ```bash
 sudo hostnamectl set-hostname cam-01
 ```
 
-Stream ID is derived from `CAM_ID` and used as the RTSP path, e.g.:
-- `CAM_ID=cam01` → `rtsp://<mac>:8554/cam01`
-- `CAM_ID=cam02` → `rtsp://<mac>:8554/cam02`
+Stream ID is derived from `CAM_ID` and mapped to a UDP port, e.g.:
+- `CAM_ID=cam01` → port `5001`
+- `CAM_ID=cam02` → port `5002`
 
 Update `pi-node/stream.sh` and `pi-node/stream.service` to match:
 - `CAM_ID`
 - `DEST_IP`
-- `DEST_PORT`
+- `DEST_PORT` (UDP port)
 
 ## Install systemd service
 
@@ -55,19 +56,19 @@ sudo systemctl status stream.service
 ### Automated install
 ```bash
 chmod +x /home/pi/pi-node/install.sh
-sudo /home/pi/pi-node/install.sh --cam-id cam01 --hostname cam-01 --dest-ip mac.local
+sudo /home/pi/pi-node/install.sh --cam-id cam01 --hostname cam-01 --dest-ip ambient-host
 ```
 
 ### Generate per-camera configs
 ```bash
 chmod +x /home/pi/pi-node/generate-cam-configs.sh
-/home/pi/pi-node/generate-cam-configs.sh --count 4 --dest-ip mac.local
+/home/pi/pi-node/generate-cam-configs.sh --count 4 --dest-ip ambient-host
 ```
 
-### RTSP health check
+### Stream health check
 ```bash
-chmod +x /home/pi/pi-node/rtsp-healthcheck.sh
-/home/pi/pi-node/rtsp-healthcheck.sh --url rtsp://mac.local:8554/cam01
+chmod +x /home/pi/pi-node/stream-healthcheck.sh
+/home/pi/pi-node/stream-healthcheck.sh stream.service
 ```
 
 ### Health check timer (systemd)
@@ -76,6 +77,11 @@ If the check fails, the stream service is restarted automatically.
 Restarts are rate-limited to once per 60 seconds to avoid swamping the Pi.
 
 ```bash
-sudo systemctl status rtsp-healthcheck.timer
-sudo systemctl list-timers --all | grep rtsp-healthcheck
+sudo systemctl status stream-healthcheck.timer
+sudo systemctl list-timers --all | grep stream-healthcheck
+```
+
+```bash
+sudo systemctl status stream-healthcheck.timer
+sudo systemctl list-timers --all | grep stream-healthcheck
 ```

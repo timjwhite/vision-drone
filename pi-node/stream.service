@@ -1,5 +1,5 @@
 [Unit]
-Description=Pi RTSP Stream (libcamera-vid + GStreamer)
+Description=Pi UDP Stream (libcamera-vid + GStreamer)
 After=network-online.target
 Wants=network-online.target
 
@@ -13,7 +13,7 @@ Restart=always
 RestartSec=2
 Environment=CAM_ID=cam01
 Environment=DEST_IP=mac.local
-Environment=DEST_PORT=8554
+Environment=DEST_PORT=5001
 
 [Install]
 WantedBy=multi-user.target

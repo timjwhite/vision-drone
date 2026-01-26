@@ -3,8 +3,8 @@ set -euo pipefail
 
 CAM_ID="cam01"
 HOSTNAME="cam-01"
-DEST_IP="mac.local"
-DEST_PORT="8554"
+DEST_IP="ambient-host"
+DEST_PORT="5001"
 
 usage() {
   cat <<EOF
@@ -44,14 +44,14 @@ sed -i "s/^Environment=DEST_IP=.*/Environment=DEST_IP=${DEST_IP}/" /home/pi/pi-n
 sed -i "s/^Environment=DEST_PORT=.*/Environment=DEST_PORT=${DEST_PORT}/" /home/pi/pi-node/stream.service
 
 cat > /home/pi/pi-node/healthcheck.env <<EOF
-RTSP_URL=rtsp://${DEST_IP}:${DEST_PORT}/${CAM_ID}
+STREAM_SERVICE=stream.service
 EOF
 
 cp /home/pi/pi-node/stream.service /etc/systemd/system/stream.service
-cp /home/pi/pi-node/rtsp-healthcheck.service /etc/systemd/system/rtsp-healthcheck.service
-cp /home/pi/pi-node/rtsp-healthcheck.timer /etc/systemd/system/rtsp-healthcheck.timer
+cp /home/pi/pi-node/stream-healthcheck.service /etc/systemd/system/stream-healthcheck.service
+cp /home/pi/pi-node/stream-healthcheck.timer /etc/systemd/system/stream-healthcheck.timer
 systemctl daemon-reload
 systemctl enable --now stream.service
-systemctl enable --now rtsp-healthcheck.timer
+systemctl enable --now stream-healthcheck.timer
 
-echo "Installed. Stream URL: rtsp://${DEST_IP}:${DEST_PORT}/${CAM_ID}"
+echo "Installed. Stream URL: udp://${DEST_IP}:${DEST_PORT} (${CAM_ID})"

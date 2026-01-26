@@ -23,7 +23,7 @@ done
 
 if [[ "${INSTALL_SYSTEM_DEPS}" == "1" ]]; then
   if command -v brew >/dev/null 2>&1; then
-    brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly opencv
+    brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly opencv ffmpeg
   else
     echo "Homebrew not found. Install GStreamer and OpenCV manually, or re-run with --no-system-deps."
   fi

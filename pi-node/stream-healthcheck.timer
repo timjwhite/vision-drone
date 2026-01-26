@@ -1,10 +1,10 @@
 [Unit]
-Description=RTSP Health Check Timer
+Description=Stream Health Check Timer
 
 [Timer]
 OnBootSec=30s
 OnUnitActiveSec=30s
-Unit=rtsp-healthcheck.service
+Unit=stream-healthcheck.service
 
 [Install]
 WantedBy=timers.target

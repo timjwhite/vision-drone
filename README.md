@@ -24,7 +24,20 @@ brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plu
 ./scripts/run-mac.sh
 ```
 
+### UDP test harness (send a movie from any machine)
+From any machine with `ffmpeg`, publish a file:
+
+```bash
+./scripts/publish-test-mp4.sh /path/to/test.mp4 ambient-host 5001
+```
+
+Then run ingest (on the Mac):
+
+```bash
+./scripts/run-mac.sh
+```
+
 ### Notes
 - `opencv-python` is installed via pip to provide `cv2`.
-- For RTSP support, OpenCV must be built with GStreamer enabled (brew OpenCV is recommended on macOS).
-- Update `mac/config/ingest.yaml` with your camera RTSP URLs.
+- For UDP ingest, OpenCV must be built with GStreamer enabled (brew OpenCV is recommended on macOS).
+- Update `mac/config/ingest.yaml` with your camera UDP ports.
