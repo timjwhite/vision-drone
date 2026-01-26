@@ -25,5 +25,6 @@ brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plu
 ```
 
 ### Notes
-- OpenCV must be built with GStreamer enabled for RTSP to work.
+- `opencv-python` is installed via pip to provide `cv2`.
+- For RTSP support, OpenCV must be built with GStreamer enabled (brew OpenCV is recommended on macOS).
 - Update `mac/config/ingest.yaml` with your camera RTSP URLs.
