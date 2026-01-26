@@ -2,7 +2,7 @@
 set -euo pipefail
 
 INPUT="${1:-test.mp4}"
-DEST_HOST="${2:-mac.local}"
+DEST_HOST="${2:-ambient-host}"
 DEST_PORT="${3:-5001}"
 
 if ! command -v ffmpeg >/dev/null 2>&1; then

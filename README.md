@@ -41,3 +41,8 @@ Then run ingest (on the Mac):
 - `opencv-python` is installed via pip to provide `cv2`.
 - For UDP ingest, OpenCV must be built with GStreamer enabled (brew OpenCV is recommended on macOS).
 - Update `mac/config/ingest.yaml` with your camera UDP ports.
+
+Check whether your OpenCV has GStreamer:
+```bash
+./scripts/check-opencv-gstreamer.sh
+```
