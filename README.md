@@ -1,2 +1,29 @@
 # vision-drone
-Art project to capture moving images and output midi signal for performance installations
+Art project to capture moving images and output MIDI signal for performance installations.
+
+## macOS install + run (ingest)
+This section is kept up to date as modules are added.
+
+### System requirements
+- macOS 12+ (recommended)
+- Python 3.12
+- GStreamer 1.0
+- OpenCV built with GStreamer backend
+
+### Install (suggested)
+```bash
+# Python deps
+./scripts/setup-venv.sh --python python3.12
+
+# GStreamer + OpenCV (brew example)
+brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plugins-ugly opencv
+```
+
+### Run ingest
+```bash
+./scripts/run-mac.sh
+```
+
+### Notes
+- OpenCV must be built with GStreamer enabled for RTSP to work.
+- Update `mac/config/ingest.yaml` with your camera RTSP URLs.
