@@ -70,9 +70,13 @@ def run_pipeline(config: IngestConfig) -> None:
     fusion_engine = FeatureFusion(config.fusion or {})
     music_engine = MusicEngine(config.music or {})
     midi_out = MidiOutput(config.midi or {})
+    vision_config = config.vision or {}
+    preview_enabled = bool(vision_config.get("preview", False))
+    log_counts = bool(vision_config.get("log_counts", False))
 
     camera_manager.start()
     midi_out.open()
+    last_print = 0.0
     try:
         while True:
             frames = camera_manager.get_latest_frames()
@@ -80,12 +84,31 @@ def run_pipeline(config: IngestConfig) -> None:
             features = fusion_engine.update(vision_results)
             events = music_engine.generate(features)
             midi_out.send(events)
+            if log_counts:
+                now = time.time()
+                if now - last_print >= 1.0:
+                    counts = {sid: len(people) for sid, people in vision_results.items()}
+                    print(f"vision: {counts}")
+                    last_print = now
+            if preview_enabled:
+                for stream_id, payload in frames.items():
+                    frame = payload.get("frame")
+                    if frame is None:
+                        continue
+                    boxes = vision_engine.get_last_boxes(stream_id)
+                    for (x, y, w, h) in boxes:
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    cv2.imshow(f"vision-{stream_id}", frame)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
             time.sleep(config.tick_interval)
     except KeyboardInterrupt:
         pass
     finally:
         camera_manager.stop()
         midi_out.close()
+        if preview_enabled:
+            cv2.destroyAllWindows()
 
 
 def run_midi_test(config: IngestConfig) -> None:

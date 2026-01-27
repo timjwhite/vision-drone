@@ -41,6 +41,8 @@ python3 mac/main.py --vision-test --config mac/config/ingest.yaml
 ### YOLO person detection (recommended)
 The vision module supports YOLO for person detection. The first run will download the model file if needed.
 Set `vision.detector: yolo` and `vision.model: yolov8n.pt` in `mac/config/ingest.yaml`.
+To see bounding boxes and per-stream counts while running the full pipeline, enable
+`vision.preview: true` and `vision.log_counts: true`.
 
 ### Vision test on local file
 If you have `mac/test.mp4`, run:
