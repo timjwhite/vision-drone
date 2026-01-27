@@ -4,6 +4,13 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import cv2
+import io
+import numpy as np
+
+try:
+    import av
+except Exception:  # pragma: no cover - optional dependency
+    av = None
 
 
 def build_gstreamer_pipeline(
@@ -41,6 +48,7 @@ class CameraStream:
     protocol: str = "udp"
     udp_port: Optional[int] = None
     reconnect_interval_s: float = 2.0
+    use_pyav: bool = True
 
     last_frame: Optional[object] = None
     last_timestamp: float = 0.0
@@ -79,6 +87,10 @@ class CameraStream:
         return cap
 
     def _run(self) -> None:
+        if self.protocol == "udp" and self.use_pyav:
+            self._run_pyav()
+            return
+
         cap: Optional[cv2.VideoCapture] = None
         while not self._stop_event.is_set():
             if cap is None:
@@ -106,6 +118,50 @@ class CameraStream:
         if cap is not None:
             cap.release()
 
+    def _run_pyav(self) -> None:
+        if av is None:
+            raise RuntimeError("PyAV is not installed. Install with: pip install av")
+        if self.udp_port is None:
+            raise ValueError("udp_port is required for PyAV UDP ingest")
+
+        while not self._stop_event.is_set():
+            try:
+                container = self._open_pyav()
+            except Exception:
+                self._set_connected(False)
+                time.sleep(self.reconnect_interval_s)
+                continue
+
+            self._set_connected(True)
+            try:
+                for frame in container.decode(video=0):
+                    if self._stop_event.is_set():
+                        break
+                    img = frame.to_ndarray(format="bgr24")
+                    ts = time.time()
+                    with self._lock:
+                        self.last_frame = img
+                        self.last_timestamp = ts
+                        self.connected = True
+            except Exception:
+                self._set_connected(False)
+            finally:
+                try:
+                    container.close()
+                except Exception:
+                    pass
+            time.sleep(self.reconnect_interval_s)
+
     def _set_connected(self, is_connected: bool) -> None:
         with self._lock:
             self.connected = is_connected
+
+    def _open_pyav(self):
+        url = f"udp://0.0.0.0:{self.udp_port}"
+        options = {
+            "fflags": "nobuffer",
+            "flags": "low_delay",
+            "probesize": "32",
+            "analyzeduration": "0",
+        }
+        return av.open(url, format="h264", options=options)

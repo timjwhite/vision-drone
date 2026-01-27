@@ -22,5 +22,4 @@ exec libcamera-vid \
   -o - | \
   gst-launch-1.0 -v \
     fdsrc ! h264parse config-interval=1 ! \
-    rtph264pay pt=96 config-interval=1 ! \
     udpsink host=${DEST_IP} port=${DEST_PORT}

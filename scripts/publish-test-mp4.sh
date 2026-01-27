@@ -20,5 +20,6 @@ echo "Publishing ${INPUT} to rtp://${DEST_HOST}:${DEST_PORT}"
 exec ffmpeg -re -stream_loop -1 -i "${INPUT}" \
   -an -c:v libx264 -preset veryfast -tune zerolatency \
   -x264-params keyint=30:min-keyint=30:scenecut=0:repeat-headers=1 \
-  -pix_fmt yuv420p -payload_type 96 -f rtp \
-  "rtp://${DEST_HOST}:${DEST_PORT}?pkt_size=1200" -loglevel info
+  -bsf:v h264_mp4toannexb \
+  -pix_fmt yuv420p -f h264 \
+  "udp://${DEST_HOST}:${DEST_PORT}?pkt_size=1200" -loglevel info

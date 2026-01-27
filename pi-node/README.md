@@ -8,13 +8,12 @@
 Note: Do not use `perl` for any scripts in this project. Use `sed` or other POSIX tools instead.
 
 ## Stream command (libcamera-vid → GStreamer → UDP)
-The stream is produced by `libcamera-vid` and sent over UDP via `gst-launch-1.0`.
+The stream is produced by `libcamera-vid` and sent as raw H.264 over UDP via `gst-launch-1.0`.
 
 ```bash
 libcamera-vid -t 0 --width 1280 --height 720 --framerate 15 \
   --codec h264 --bitrate 2000000 --inline --keyframe 30 --flush -o - | \
 gst-launch-1.0 -v fdsrc ! h264parse config-interval=1 ! \
-  rtph264pay pt=96 config-interval=1 ! \
   udpsink host=mac.local port=5001
 ```
 

@@ -4,6 +4,7 @@ cameras:
   - id: cam01
     protocol: udp
     udp_port: 5001
+    use_pyav: true
     reconnect_interval_s: 2.0
 
 music:

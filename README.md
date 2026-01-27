@@ -24,6 +24,9 @@ brew install gstreamer gst-plugins-base gst-plugins-good gst-plugins-bad gst-plu
 ./scripts/run-mac.sh
 ```
 
+If you installed GStreamer via the macOS framework (not Homebrew), `run-mac.sh` will automatically
+set the required environment variables from `/Library/Frameworks/GStreamer.framework`.
+
 ### MIDI test (no vision required)
 Enable the macOS IAC Driver and create a bus named `IAC Driver Bus 1`, then run:
 
@@ -59,7 +62,7 @@ python3 mac/main.py --vision-test-file-midi --config mac/config/ingest.yaml
 ```
 
 ### UDP test harness (send a movie from any machine)
-From any machine with `ffmpeg`, publish a file:
+From any machine with `ffmpeg`, publish a file (raw H.264 over UDP):
 
 ```bash
 ./scripts/publish-test-mp4.sh /path/to/test.mp4 ambient-host 5001
@@ -73,7 +76,7 @@ Then run ingest (on the Mac):
 
 ### Notes
 - `opencv-python` is installed via pip to provide `cv2`.
-- For UDP ingest, OpenCV must be built with GStreamer enabled (brew OpenCV is recommended on macOS).
+- For UDP ingest, the default path now uses PyAV (FFmpeg). Set `use_pyav: true` in `mac/config/ingest.yaml`.
 - Update `mac/config/ingest.yaml` with your camera UDP ports.
 
 Check whether your OpenCV has GStreamer:

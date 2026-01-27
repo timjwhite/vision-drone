@@ -14,6 +14,7 @@ class CameraManager:
                 protocol=cfg.get("protocol", "udp"),
                 udp_port=cfg.get("udp_port"),
                 reconnect_interval_s=cfg.get("reconnect_interval_s", 2.0),
+                use_pyav=cfg.get("use_pyav", True),
             )
             self._streams[stream.stream_id] = stream
 
