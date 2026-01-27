@@ -24,6 +24,8 @@ vision:
   model: yolov8n.pt
   conf: 0.4
   iou: 0.5
+  preview: true
+  log_counts: true
   detection_interval_s: 0.2
   min_area: 800
   distance_threshold: 60.0
