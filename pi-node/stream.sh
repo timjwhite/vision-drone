@@ -10,10 +10,13 @@ FRAMERATE=15
 KEYFRAME_INTERVAL=30
 
 CAMERA_CMD=""
+KEYFRAME_FLAG=""
 if command -v rpicam-vid >/dev/null 2>&1; then
   CAMERA_CMD="rpicam-vid"
+  KEYFRAME_FLAG="--intra"
 elif command -v libcamera-vid >/dev/null 2>&1; then
   CAMERA_CMD="libcamera-vid"
+  KEYFRAME_FLAG="--keyframe"
 else
   echo "Missing camera app: install rpicam-vid or libcamera-vid"
   exit 1
@@ -27,7 +30,7 @@ exec "${CAMERA_CMD}" \
   --codec h264 \
   --bitrate ${BITRATE} \
   --inline \
-  --keyframe ${KEYFRAME_INTERVAL} \
+  ${KEYFRAME_FLAG} ${KEYFRAME_INTERVAL} \
   --flush \
   -o - | \
   gst-launch-1.0 -v \
