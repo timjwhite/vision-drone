@@ -41,7 +41,7 @@ EOF
   cat > "${CAM_DIR}/install.sh" <<EOF
 #!/bin/bash
 set -euo pipefail
-sudo "\$HOME/pi-node/install.sh" --cam-id ${CAM_ID} --hostname ${HOSTNAME} --dest-ip ${DEST_IP} --dest-port ${DEST_PORT}
+sudo '$HOME/pi-node/install.sh' --cam-id ${CAM_ID} --hostname ${HOSTNAME} --dest-ip ${DEST_IP} --dest-port ${DEST_PORT}
 EOF
 
   chmod +x "${CAM_DIR}/install.sh"

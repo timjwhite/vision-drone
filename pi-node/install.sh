@@ -2,14 +2,14 @@
 set -euo pipefail
 
 CAM_ID="cam01"
-HOSTNAME="cam-01"
+HOSTNAME="camera1"
 DEST_IP="ambient-host"
 DEST_PORT="5001"
-INSTALL_USER=""
+INSTALL_USER="pi"
 
 usage() {
   cat <<EOF
-Usage: install.sh [--cam-id cam01] [--hostname cam-01] [--dest-ip mac.local] [--dest-port 8554] [--user pi]
+Usage: install.sh [--cam-id cam01] [--hostname camera1] [--dest-ip mac.local] [--dest-port 8554] [--user pi]
 EOF
 }
 
@@ -77,10 +77,6 @@ if [[ "${missing}" -ne 0 ]]; then
     echo "apt-get not found; install dependencies manually and re-run."
     exit 1
   fi
-fi
-
-if [[ -z "${INSTALL_USER}" ]]; then
-  INSTALL_USER="${SUDO_USER:-pi}"
 fi
 
 if ! id -u "${INSTALL_USER}" >/dev/null 2>&1; then
