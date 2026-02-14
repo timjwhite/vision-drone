@@ -2,16 +2,16 @@
 
 ## Requirements
 - Raspberry Pi Zero 2 W + CSI camera
-- Raspberry Pi OS Lite
-- `libcamera` + `gstreamer1.0`
+- Raspberry Pi OS Lite (Trixie supported)
+- `libcamera`/`rpicam` + `gstreamer1.0`
 
 Note: Do not use `perl` for any scripts in this project. Use `sed` or other POSIX tools instead.
 
-## Stream command (libcamera-vid → GStreamer → UDP)
-The stream is produced by `libcamera-vid` and sent as raw H.264 over UDP via `gst-launch-1.0`.
+## Stream command (rpicam-vid/libcamera-vid → GStreamer → UDP)
+The stream is produced by `rpicam-vid` (or `libcamera-vid`) and sent as raw H.264 over UDP via `gst-launch-1.0`.
 
 ```bash
-libcamera-vid -t 0 --width 1280 --height 720 --framerate 15 \
+rpicam-vid -t 0 --width 1280 --height 720 --framerate 15 \
   --codec h264 --bitrate 2000000 --inline --keyframe 30 --flush -o - | \
 gst-launch-1.0 -v fdsrc ! h264parse config-interval=1 ! \
   udpsink host=mac.local port=5001
@@ -34,6 +34,7 @@ Update `pi-node/stream.sh` and `pi-node/stream.service` to match:
 - `DEST_PORT` (UDP port)
 
 ## Install systemd service
+Note: On Trixie, the default user may not be `pi`. The install script uses the sudo user by default; override with `--user`.
 
 ```bash
 sudo mkdir -p /home/pi/pi-node

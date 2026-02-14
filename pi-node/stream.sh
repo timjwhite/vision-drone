@@ -9,7 +9,17 @@ BITRATE=2000000
 FRAMERATE=15
 KEYFRAME_INTERVAL=30
 
-exec libcamera-vid \
+CAMERA_CMD=""
+if command -v rpicam-vid >/dev/null 2>&1; then
+  CAMERA_CMD="rpicam-vid"
+elif command -v libcamera-vid >/dev/null 2>&1; then
+  CAMERA_CMD="libcamera-vid"
+else
+  echo "Missing camera app: install rpicam-vid or libcamera-vid"
+  exit 1
+fi
+
+exec "${CAMERA_CMD}" \
   -t 0 \
   --width 1280 \
   --height 720 \
