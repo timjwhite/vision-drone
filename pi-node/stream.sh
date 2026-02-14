@@ -35,4 +35,5 @@ exec "${CAMERA_CMD}" \
   -o - | \
   gst-launch-1.0 -v \
     fdsrc ! h264parse config-interval=1 ! \
+    video/x-h264,stream-format=byte-stream,alignment=au ! \
     udpsink host=${DEST_IP} port=${DEST_PORT}
