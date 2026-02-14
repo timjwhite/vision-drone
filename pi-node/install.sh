@@ -113,7 +113,7 @@ STREAM_SERVICE=stream.service
 EOF
 
 sed -i "s|^EnvironmentFile=.*|EnvironmentFile=${NODE_DIR}/healthcheck.env|" "${NODE_DIR}/stream-healthcheck.service"
-sed -i "s|^ExecStart=.*|ExecStart=${NODE_DIR}/stream-healthcheck.sh \\${STREAM_SERVICE}|" "${NODE_DIR}/stream-healthcheck.service"
+sed -i "s|^ExecStart=.*|ExecStart=${NODE_DIR}/stream-healthcheck.sh "'\${STREAM_SERVICE}'"|" "${NODE_DIR}/stream-healthcheck.service"
 
 cp "${NODE_DIR}/stream.service" /etc/systemd/system/stream.service
 cp "${NODE_DIR}/stream-healthcheck.service" /etc/systemd/system/stream-healthcheck.service
